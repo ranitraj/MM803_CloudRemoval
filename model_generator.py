@@ -168,3 +168,24 @@ class Generator(nn.Module):
             ),
             nn.Tanh()  # Each pixel value should range between +1 to -1
         )
+
+    def forward(self, _input):
+        downward_1 = self.first_downward(_input)
+        downward_2 = self.second_downward(downward_1)
+        downward_3 = self.third_downward(downward_2)
+        downward_4 = self.four_downward(downward_3)
+        downward_5 = self.five_downward(downward_4)
+        downward_6 = self.six_downward(downward_5)
+        downward_7 = self.seven_downward(downward_6)
+
+        final = self.final_downward(downward_7)
+
+        upward_1 = self.first_upward(final)    # Same shape as downward_7
+        upward_2 = self.second_upward(torch.cat([upward_1, downward_7], 1))    # Same shape as downward_6
+        upward_3 = self.third_upward(torch.cat([upward_2, downward_6], 1))
+        upward_4 = self.four_upward(torch.cat([upward_3, downward_5], 1))
+        upward_5 = self.five_upward(torch.cat([upward_4, downward_4], 1))
+        upward_6 = self.six_upward(torch.cat([upward_5, downward_3], 1))
+        upward_7 = self.seven_upward(torch.cat([upward_6, downward_2], 1))
+
+        return self.final_upward(torch.cat([upward_7, downward_1], 1))
