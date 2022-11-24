@@ -22,6 +22,7 @@ class DataMapper(Dataset):
 
 # Unit-Test
 if __name__ == "__main__":
+    # TODO: To be changed into proper structure
     cloud = DataMapper("thin_cloud/cloud/")
     label = DataMapper("thin_cloud/label/")
 
