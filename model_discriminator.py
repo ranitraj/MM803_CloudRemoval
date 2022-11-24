@@ -5,7 +5,6 @@ import torch.nn as nn
 # The discriminator in Pix2Pix is a PatchGAN, consisting of CNN Blocks
 class CNNLayer(nn.Module):
     def __init__(self, in_channels, out_channels, stride):
-        super(CNNLayer, self).__init__()
         """
         Creates a CNN Block consisting of a 'convolution' defined by a Sequential Layer comprising:
             1. Convolution2D layer
@@ -16,6 +15,8 @@ class CNNLayer(nn.Module):
         :param out_channels: Number of output channels supplied
         :param stride: Convolution operation stride
         """
+        super(CNNLayer, self).__init__()
+
         self.convolution = nn.Sequential(
             nn.Conv2d(
                 in_channels,
@@ -35,7 +36,6 @@ class CNNLayer(nn.Module):
 
 class Discriminator(nn.Module):
     def __init__(self, in_channels=3, features=None):
-        super().__init__()
         """
         Creates the Discriminator model.
             1. Create the first Sequential layer which does not use BatchNorm2D using the first feature '64'
@@ -46,6 +46,8 @@ class Discriminator(nn.Module):
         :param in_channels: Number of input channels supplied
         :param features: Convolution features
         """
+        super().__init__()
+
         # Initializations
         if features is None:
             # Convolution operations
@@ -70,7 +72,6 @@ class Discriminator(nn.Module):
 
         # Iterate through the features list (second feature onwards) and append the result on the 'layers' list
         for cur_feature in features[1:]:
-            print(f"cur_feature = {cur_feature}")
             if cur_feature != 512:
                 layers.append(
                     CNNLayer(in_channels, cur_feature, stride=2),
