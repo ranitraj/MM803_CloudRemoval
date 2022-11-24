@@ -55,7 +55,7 @@ class Discriminator(nn.Module):
         # First Sequential convolution layer without BatchNorm2D
         self.first = nn.Sequential(
             nn.Conv2d(
-                in_channels*2,
+                in_channels * 2,
                 features[0],
                 kernel_size=4,
                 stride=2,
@@ -101,3 +101,17 @@ class Discriminator(nn.Module):
         x = self.first(x)
         x = self.discriminator_model(x)
         return x
+
+
+# Unit-test case
+def test():
+    x = torch.randn((1, 3, 286, 286))
+    y = torch.randn((1, 3, 286, 286))
+    model = Discriminator(in_channels=3)
+    output = model(x, y)
+    print(model)
+    print(output.shape)
+
+
+if __name__ == "__main__":
+    test()
