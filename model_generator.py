@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class UNetBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, is_downward=True, activation="relu", is_using_dropout=False):
+    def __init__(self, in_channels, out_channels, is_downward=True, activation="relu", is_dropout=False):
         """
          Creates the UNet Block used for the Generator in Pix2Pix.
 
@@ -11,7 +11,7 @@ class UNetBlock(nn.Module):
         :param out_channels: Number of output channels supplied
         :param is_downward: Boolean flag which is True in case of Encoder, and False in case of Decoder
         :param activation: Activation function used
-        :param is_using_dropout: Boolean flag stating if dropout is used
+        :param is_dropout: Boolean flag stating if dropout is used
         """
         super().__init__()
 
@@ -21,8 +21,8 @@ class UNetBlock(nn.Module):
             if activation == "relu":
                 self.convolution = nn.Sequential(
                     nn.Conv2d(
-                        in_channels,
-                        out_channels,
+                        in_channels=in_channels,
+                        out_channels=out_channels,
                         kernel_size=4,
                         stride=2,
                         padding=1,
@@ -35,8 +35,8 @@ class UNetBlock(nn.Module):
             else:
                 self.convolution = nn.Sequential(
                     nn.Conv2d(
-                        in_channels,
-                        out_channels,
+                        in_channels=in_channels,
+                        out_channels=out_channels,
                         kernel_size=4,
                         stride=2,
                         padding=1,
@@ -51,8 +51,8 @@ class UNetBlock(nn.Module):
             if activation == "relu":
                 self.convolution = nn.Sequential(
                     nn.ConvTranspose2d(
-                        in_channels,
-                        out_channels,
+                        in_channels=in_channels,
+                        out_channels=out_channels,
                         kernel_size=4,
                         stride=2,
                         padding=1,
@@ -64,8 +64,8 @@ class UNetBlock(nn.Module):
             else:
                 self.convolution = nn.Sequential(
                     nn.ConvTranspose2d(
-                        in_channels,
-                        out_channels,
+                        in_channels=in_channels,
+                        out_channels=out_channels,
                         kernel_size=4,
                         stride=2,
                         padding=1,
@@ -76,7 +76,7 @@ class UNetBlock(nn.Module):
                 )
 
         # Setting the Dropout
-        self.is_using_dropout = is_using_dropout
+        self.is_using_dropout = is_dropout
         self.dropout = nn.Dropout(0.5)
 
     def forward(self, _input):
@@ -85,3 +85,86 @@ class UNetBlock(nn.Module):
             return self.dropout(_input)
         else:
             return _input
+
+
+class Generator(nn.Module):
+    def __init__(self, in_channels=3, features=64):
+        """
+        Creates the Discriminator model.
+            1. Create the first Sequential layer which does not use BatchNorm2D using the first feature '64'
+            2. Create remaining 6 downward UNet-Blocks
+            3. Create the final UNet-Block
+            4. Create total of 7 upward UNet-Blocks
+
+        :param in_channels: Number of input channels supplied
+        :param features: Convolution features
+        """
+        super().__init__()
+
+        # First Sequential 'Downward' convolution layer without BatchNorm2D
+        self.first_downward = nn.Sequential(
+            nn.Conv2d(
+                in_channels=in_channels,
+                out_channels=features,
+                kernel_size=4,
+                stride=2,
+                padding=1,
+                padding_mode="reflect"
+            ),
+            nn.LeakyReLU(0.2)
+        )
+
+        # Creating remaining downward layers
+        self.second_downward = UNetBlock(features, features * 2, is_downward=True, activation="leaky",
+                                         is_dropout=False)
+        self.third_downward = UNetBlock(features * 2, features * 4, is_downward=True, activation="leaky",
+                                        is_dropout=False)
+        self.four_downward = UNetBlock(features * 4, features * 8, is_downward=True, activation="leaky",
+                                       is_dropout=False)
+        self.five_downward = UNetBlock(features * 8, features * 8, is_downward=True, activation="leaky",
+                                       is_dropout=False)
+        self.six_downward = UNetBlock(features * 8, features * 8, is_downward=True, activation="leaky",
+                                      is_dropout=False)
+        self.seven_downward = UNetBlock(features * 8, features * 8, is_downward=True, activation="leaky",
+                                        is_dropout=False)
+
+        # Last Downward Layer
+        self.final_downward = nn.Sequential(
+            nn.Conv2d(
+                in_channels=features * 8,
+                out_channels=features * 8,
+                kernel_size=4,
+                stride=2,
+                padding=1,
+                padding_mode="reflect"
+            ),
+            nn.ReLU()
+        )
+
+        # Creating Upward layers
+        self.first_upward = UNetBlock(features * 8, features * 8, is_downward=False, activation="relu",
+                                      is_dropout=True)
+        self.second_upward = UNetBlock(features * 8 * 2, features * 8, is_downward=False, activation="relu",
+                                       is_dropout=True)
+        self.third_upward = UNetBlock(features * 8 * 2, features * 8, is_downward=False, activation="relu",
+                                      is_dropout=True)
+        self.four_upward = UNetBlock(features * 8 * 2, features * 8, is_downward=False, activation="relu",
+                                     is_dropout=False)
+        self.five_upward = UNetBlock(features * 8 * 2, features * 4, is_downward=False, activation="relu",
+                                     is_dropout=False)
+        self.six_upward = UNetBlock(features * 4 * 2, features * 2, is_downward=False, activation="relu",
+                                    is_dropout=False)
+        self.seven_upward = UNetBlock(features * 2 * 2, features, is_downward=False, activation="relu",
+                                      is_dropout=False)
+
+        # Last Upward Layer
+        self.final_upward = nn.Sequential(
+            nn.ConvTranspose2d(
+                features * 2,
+                in_channels,
+                kernel_size=4,
+                stride=2,
+                padding=1
+            ),
+            nn.Tanh()  # Each pixel value should range between +1 to -1
+        )
