@@ -3,20 +3,20 @@ import torch.nn as nn
 
 
 class UNetBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, downward=True, activation="relu", dropout=False):
+    def __init__(self, in_channels, out_channels, is_downward=True, activation="relu", is_using_dropout=False):
         """
          Creates the UNet Block used for the Generator in Pix2Pix.
 
-        :param in_channel: Number of input channels supplied
+        :param in_channels: Number of input channels supplied
         :param out_channels: Number of output channels supplied
-        :param downward: Boolean flag which is True in case of Encoder, and False in case of Decoder
+        :param is_downward: Boolean flag which is True in case of Encoder, and False in case of Decoder
         :param activation: Activation function used
-        :param dropout: Boolean flag stating if dropout is used
+        :param is_using_dropout: Boolean flag stating if dropout is used
         """
         super().__init__()
 
         # Creating a Convolution layer
-        if downward:
+        if is_downward:
             # Encoder part of the UNet
             if activation == "relu":
                 self.convolution = nn.Sequential(
@@ -74,3 +74,14 @@ class UNetBlock(nn.Module):
                     nn.BatchNorm2d(out_channels),
                     nn.LeakyReLU(0.2)
                 )
+
+        # Setting the Dropout
+        self.is_using_dropout = is_using_dropout
+        self.dropout = nn.Dropout(0.5)
+
+    def forward(self, _input):
+        _input = self.convolution(_input)
+        if self.is_using_dropout:
+            return self.dropout(_input)
+        else:
+            return _input
