@@ -180,8 +180,8 @@ class Generator(nn.Module):
 
         final = self.final_downward(downward_7)
 
-        upward_1 = self.first_upward(final)    # Same shape as downward_7
-        upward_2 = self.second_upward(torch.cat([upward_1, downward_7], 1))    # Same shape as downward_6
+        upward_1 = self.first_upward(final)  # Same shape as downward_7
+        upward_2 = self.second_upward(torch.cat([upward_1, downward_7], 1))  # Same shape as downward_6
         upward_3 = self.third_upward(torch.cat([upward_2, downward_6], 1))
         upward_4 = self.four_upward(torch.cat([upward_3, downward_5], 1))
         upward_5 = self.five_upward(torch.cat([upward_4, downward_4], 1))
@@ -189,3 +189,15 @@ class Generator(nn.Module):
         upward_7 = self.seven_upward(torch.cat([upward_6, downward_2], 1))
 
         return self.final_upward(torch.cat([upward_7, downward_1], 1))
+
+
+# Unit-Test
+def test():
+    x = torch.randn((1, 3, 256, 256))
+    model = Generator(in_channels=3, features=64)
+    prediction = model(x)
+    print(prediction.shape)
+
+
+if __name__ == "__main__":
+    test()
