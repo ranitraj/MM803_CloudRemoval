@@ -14,15 +14,12 @@ all_transforms = [transforms.ToPILImage(),
 class DataMapper(Dataset):
     def __init__(self, dataset_directory):
         self.dataset_directory = dataset_directory
-        print(f"dataset_directory = {self.dataset_directory}")
 
         self.cloud_directory = self.dataset_directory + "cloud/"
         self.image_file_cloud = os.listdir(self.cloud_directory)
-        print(f"image_files_cloud = {self.image_file_cloud}")
 
         self.label_directory = self.dataset_directory + "label/"
         self.image_file_label = os.listdir(self.label_directory)
-        print(f"image_files_label = {self.image_file_label}")
 
         self.transform = transforms.Compose(all_transforms)
 
@@ -49,5 +46,6 @@ class DataMapper(Dataset):
 if __name__ == "__main__":
     loader_cloud = DataLoader(DataMapper("thin_cloud/training/"), batch_size=5)
 
-    for x in loader_cloud:
-        print(x)
+    for images in loader_cloud:
+        for cur_image in images:
+            print(cur_image.shape)
