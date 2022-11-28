@@ -6,7 +6,7 @@ import config
 from data_mapper import DataMapper
 from model_generator import Generator
 from model_discriminator import Discriminator
-from utils import load_checkpoint, save_checkpoint
+from utils import save_checkpoint, load_checkpoint, save_training_examples
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -30,7 +30,6 @@ def start_training_dataset(discriminator, generator, train_dataloader, optimizer
     :param loss_bce: BCE loss
     :param scalar_generator: Scalar value for generator for performing efficient steps while gradient scaling
     :param scalar_discriminator: Scalar value for discriminator for performing efficient steps while gradient scaling
-    :return:
     """
     loop = tqdm(train_dataloader, leave=True)
 
@@ -109,7 +108,7 @@ def main():
         )
 
     # Training dataset
-    train_dataset = DataMapper(root_dir=config.DIRECTORY_TRAINING)
+    train_dataset = DataMapper(config.DIRECTORY_TRAINING)
     train_dataloader = DataLoader(
         train_dataset,
         batch_size=config.BATCH_SIZE,
@@ -120,6 +119,9 @@ def main():
     # Adding scalars for performing efficient steps while gradient scaling
     scalar_discriminator = torch.cuda.amp.GradScaler()
     scalar_generator = torch.cuda.amp.GradScaler()
+
+    # val_dataset = DataMapper(config.DIRECTORY_VALIDATION)
+    # val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False)
 
     # Starts training Generator and Discriminator using the training dataset
     for cur_epoch in range(config.NUM_EPOCHS):
@@ -132,6 +134,8 @@ def main():
         if config.FLAG_SAVE_MODEL and cur_epoch % 5 == 0:
             save_checkpoint(generator, optimizer_generator, filename=config.CHECKPOINT_GENERATOR)
             save_checkpoint(discriminator, optimizer_discriminator, filename=config.CHECKPOINT_DISCRIMINATOR)
+
+        # save_training_examples(generator, val_loader, cur_epoch, folder="evaluation")
 
 
 if __name__ == "__main__":

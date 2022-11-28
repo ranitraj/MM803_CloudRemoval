@@ -1,5 +1,6 @@
 import torch
 import config
+from torchvision.utils import save_image
 
 
 def save_checkpoint(type_model, type_optimizer, filename="my_checkpoint.pth.tar"):
@@ -35,3 +36,18 @@ def load_checkpoint(type_checkpoint_file, type_model, type_optimizer, learning_r
     # If we don't do this then it will just have learning rate of old checkpoint
     for param_group in type_optimizer.param_groups:
         param_group["lr"] = learning_rate
+
+
+def save_training_examples(generator, validation_loader, epoch, folder):
+    x, y = next(iter(validation_loader))
+    x, y = x.to(config.DEVICE), y.to(config.DEVICE)
+    generator.eval()
+
+    with torch.no_grad():
+        y_fake = generator(x)
+        y_fake = y_fake * 0.5 + 0.5  # remove normalization
+        save_image(y_fake, folder + f"/y_gen_{epoch}.png")
+        save_image(x * 0.5 + 0.5, folder + f"/input_{epoch}.png")
+        if epoch == 1:
+            save_image(y * 0.5 + 0.5, folder + f"/label_{epoch}.png")
+    generator.train()

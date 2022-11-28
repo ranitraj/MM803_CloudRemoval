@@ -2,8 +2,8 @@ import torch
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-DIRECTORY_TRAINING = "thin_cloud/training"
-DIRECTORY_VALIDATION = "thin_cloud/validation"
+DIRECTORY_TRAINING = "thin_cloud/training/"
+DIRECTORY_VALIDATION = "thin_cloud/validation/"
 
 LEARNING_RATE = 2e-4
 BATCH_SIZE = 16
