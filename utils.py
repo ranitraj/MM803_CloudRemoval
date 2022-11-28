@@ -2,6 +2,22 @@ import torch
 import config
 
 
+def save_checkpoint(type_model, type_optimizer, filename="my_checkpoint.pth.tar"):
+    """
+    Saves the checkpoint to maintain progress
+
+    :param type_model: generator/ discriminator model
+    :param type_optimizer: optimizer used for generator/ discriminator
+    :param filename: filename of the checkpoint
+    """
+    print(f"Saving checkpoint: Model = {type_model} & Optimizer = {type_optimizer}")
+    checkpoint = {
+        "state_dict": type_model.state_dict(),
+        "optimizer": type_optimizer.state_dict(),
+    }
+    torch.save(checkpoint, filename)
+
+
 def load_checkpoint(type_checkpoint_file, type_model, type_optimizer, learning_rate):
     """
     Loads the checkpoint to maintain progress
