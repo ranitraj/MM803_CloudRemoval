@@ -29,12 +29,34 @@ def start_training_dataset(discriminator, generator, train_dataloader, optimizer
 
             discriminator_real_loss = loss_bce(discriminator_real, torch.ones_like(discriminator_real))
             discriminator_fake_loss = loss_bce(discriminator_fake, torch.zeros_like(discriminator_fake))
+
+            # As per paper, it is divided by 2 to delay the discriminator_training process compared to generator
             discriminator_total_loss = (discriminator_real_loss + discriminator_fake_loss) / 2
 
+        # Updating discriminator values
         discriminator.zero_grad()
         scalar_discriminator.scale(discriminator_total_loss).backward()
         scalar_discriminator.step(optimizer_discriminator)
         scalar_discriminator.update()
+
+        # Generator Training
+        with torch.cuda.amp.autocast():
+            discriminator_fake = discriminator(x, y_fake)
+            generator_fake_loss = loss_bce(discriminator_fake, torch.ones_like(discriminator_fake))
+            generator_loss_l1 = loss_l1(y_fake, y) * config.L1_LAMBDA
+            generator_total_loss = generator_fake_loss + generator_loss_l1
+
+        # Updating generator values
+        optimizer_generator.zero_grad()
+        scalar_generator.scale(generator_total_loss).backward()
+        scalar_generator.step(optimizer_generator)
+        scalar_generator.update()
+
+        if cur_index % 10 == 0:
+            loop.set_postfix(
+                D_real=torch.sigmoid(discriminator_real).mean().item(),
+                D_fake=torch.sigmoid(discriminator_fake).mean().item()
+            )
 
 
 def main():
