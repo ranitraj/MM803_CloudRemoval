@@ -15,6 +15,23 @@ torch.backends.cudnn.benchmark = True
 
 def start_training_dataset(discriminator, generator, train_dataloader, optimizer_discriminator,
                            optimizer_generator, loss_l1, loss_bce, scalar_generator, scalar_discriminator):
+    """
+    Starts training on the dataset by:
+    1. Looping over the pair of images (cloud and label)
+    2. Begin training of the discriminator
+    3. Begin training the generator
+
+    :param discriminator: discriminator
+    :param generator: generator
+    :param train_dataloader: training data-loaded
+    :param optimizer_discriminator: optimizer for discriminator
+    :param optimizer_generator: optimizer for generator
+    :param loss_l1: L1 loss
+    :param loss_bce: BCE loss
+    :param scalar_generator: Scalar value for generator for performing efficient steps while gradient scaling
+    :param scalar_discriminator: Scalar value for discriminator for performing efficient steps while gradient scaling
+    :return:
+    """
     loop = tqdm(train_dataloader, leave=True)
 
     for cur_index, (x, y) in enumerate(loop):
