@@ -1,16 +1,37 @@
-# This is a sample Python script.
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import config
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+from model_generator import Generator
+from model_discriminator import Discriminator
+
+torch.backends.cudnn.benchmark = True
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+def main():
+    # Initializing discriminator and generator
+    discriminator = Discriminator(in_channels=3).to(config.DEVICE)
+    generator = Generator(in_channels=3, features=64).to(config.DEVICE)
+
+    # Initializing optimizers for discriminator and generator
+    optimizer_discriminator = optim.Adam(
+        discriminator.parameters(),
+        lr=config.LEARNING_RATE,
+        betas=(config.BETA_ONE,
+               config.BETA_TWO)
+    )
+    optimizer_generator = optim.Adam(
+        generator.parameters(),
+        lr=config.LEARNING_RATE,
+        betas=(config.BETA_ONE,
+               config.BETA_TWO)
+    )
+
+    # Initializing the two Loss functions for Pix2Pix GAN
+    loss_bce = nn.BCEWithLogitsLoss()
+    loss_l1 = nn.L1Loss()  # Works well with PatchGAN
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+if __name__ == "__main__":
+    main()
