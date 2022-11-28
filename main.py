@@ -3,8 +3,10 @@ import torch.nn as nn
 import torch.optim as optim
 import config
 
+from data_mapper import DataMapper
 from model_generator import Generator
 from model_discriminator import Discriminator
+from utils import load_checkpoint
 
 torch.backends.cudnn.benchmark = True
 
@@ -32,6 +34,27 @@ def main():
     loss_bce = nn.BCEWithLogitsLoss()
     loss_l1 = nn.L1Loss()  # Works well with PatchGAN
 
+    # Loading configuration for Discriminator and Generator
+    if config.FLAG_LOAD_MODEL:
+        load_checkpoint(
+            config.CHECKPOINT_GENERATOR, generator, optimizer_generator, config.LEARNING_RATE,
+        )
+        load_checkpoint(
+            config.CHECKPOINT_DISCRIMINATOR, discriminator, optimizer_discriminator, config.LEARNING_RATE,
+        )
+
+    # Training dataset
+    train_dataset = DataMapper(root_dir=config.DIRECTORY_TRAINING)
+    train_dataloader = DataLoader(
+        train_dataset,
+        batch_size=config.BATCH_SIZE,
+        shuffle=True,
+        num_workers=config.COUNT_WORKERS,
+    )
+
+    # Adding scalars for performing efficient steps while gradient scaling
+    scalar_discriminator = torch.cuda.amp.GradScaler()
+    scalar_generator = torch.cuda.amp.GradScaler()
 
 if __name__ == "__main__":
     main()
