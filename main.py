@@ -15,7 +15,26 @@ torch.backends.cudnn.benchmark = True
 
 def start_training_dataset(discriminator, generator, train_dataloader, optimizer_discriminator,
                            optimizer_generator, loss_l1, loss_bce, scalar_generator, scalar_discriminator):
-    pass
+    loop = tqdm(train_dataloader, leave=True)
+
+    for cur_index, (x, y) in enumerate(loop):
+        x = x.to(config.DEVICE)
+        y = y.to(config.DEVICE)
+
+        # Discriminator Training
+        with torch.cuda.amp.autocast():
+            y_fake = generator(x)
+            discriminator_real = discriminator(x, y)
+            discriminator_fake = discriminator(x, y_fake.detach())  # Important to detach else, computation breaks
+
+            discriminator_real_loss = loss_bce(discriminator_real, torch.ones_like(discriminator_real))
+            discriminator_fake_loss = loss_bce(discriminator_fake, torch.zeros_like(discriminator_fake))
+            discriminator_total_loss = (discriminator_real_loss + discriminator_fake_loss) / 2
+
+        discriminator.zero_grad()
+        scalar_discriminator.scale(discriminator_total_loss).backward()
+        scalar_discriminator.step(optimizer_discriminator)
+        scalar_discriminator.update()
 
 
 def main():
